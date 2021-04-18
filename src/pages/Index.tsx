@@ -67,7 +67,7 @@ const Index = () => {
 
   return (
     <Paper className="paper">
-      {needKey && <Redirect to="/" />}
+      {needKey && <Redirect to="/generate" />}
       <AddNoteDialog
         open={addNoteOpen}
         handleClose={() => setAddNoteOpen(false)}
