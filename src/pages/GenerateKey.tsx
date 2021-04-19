@@ -1,6 +1,8 @@
 import { Button, Paper, TextField } from "@material-ui/core";
 import React from "react";
 import { useIndexedDB } from "react-indexed-db";
+import { Redirect } from "react-router";
+import { KeyContext } from "../context/KeyContext";
 
 const enc = new TextEncoder();
 
@@ -8,6 +10,7 @@ const GenerateKey = () => {
   const [password, setPassword] = React.useState("");
 
   const db = useIndexedDB("keys");
+  const { needKey, setNeedKey, setKey } = React.useContext(KeyContext);
 
   function generate(password: string) {
     window.crypto.subtle
@@ -31,13 +34,17 @@ const GenerateKey = () => {
             false,
             ["encrypt", "decrypt"]
           )
-          .then((key) => db.add(key));
+          .then((key) => {
+            db.add(key);
+            setKey(key);
+            setNeedKey(false);
+          });
       });
   }
 
   return (
     <Paper className="paper">
-      {JSON.stringify(db.getAll())}
+      {!needKey && <Redirect to="/" />}
       <form
         onSubmit={(e) => {
           e.preventDefault();

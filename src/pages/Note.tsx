@@ -2,14 +2,14 @@ import { Divider, Paper, Typography } from "@material-ui/core";
 import React from "react";
 import { useIndexedDB } from "react-indexed-db";
 import { useParams } from "react-router";
+import { KeyContext } from "../context/KeyContext";
 
 const dec = new TextDecoder();
 
 const Note = () => {
   const [note, setNote] = React.useState<{ title: string; body: string }>();
-  const [key, setKey] = React.useState<CryptoKey>();
 
-  const { getAll: getAllKeys } = useIndexedDB("keys");
+  const { key } = React.useContext(KeyContext);
   const { getByID } = useIndexedDB("notes");
   const { id } = useParams<{ id: string }>();
 
@@ -29,14 +29,6 @@ const Note = () => {
       );
     }
   }, [key, getByID, id, note]);
-
-  React.useEffect(() => {
-    getAllKeys().then((keys) => {
-      if (key === undefined && keys.length !== 0) {
-        setKey(keys[0]);
-      }
-    });
-  }, [getAllKeys, key]);
 
   return (
     <Paper className="paper">

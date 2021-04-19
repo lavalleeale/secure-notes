@@ -9,17 +9,22 @@ import {
 } from "@material-ui/core";
 import React from "react";
 
-const AddNoteDiaglog = ({
+const EditNoteDialog = ({
   open,
   handleClose,
   onSubmit,
+  existingBody,
+  existingTitle,
 }: {
   open: boolean;
   handleClose(): void;
   onSubmit(title: string, body: string): void;
+  existingBody: string;
+  existingTitle: string;
 }) => {
-  const [title, setTitle] = React.useState("");
-  const [body, setBody] = React.useState("");
+  const [title, setTitle] = React.useState(existingTitle);
+  const [body, setBody] = React.useState(existingBody);
+
   return (
     <Dialog
       fullWidth
@@ -28,10 +33,10 @@ const AddNoteDiaglog = ({
       onClose={handleClose}
       aria-labelledby="form-dialog-title"
     >
-      <DialogTitle id="form-dialog-title">Add Note</DialogTitle>
+      <DialogTitle id="form-dialog-title">Edit Note</DialogTitle>
       <DialogContent>
         <DialogContentText>
-          To add a note, please enter the details here.
+          To edit a note, please enter the details here.
         </DialogContentText>
         <TextField
           autoFocus
@@ -69,4 +74,4 @@ const AddNoteDiaglog = ({
   );
 };
 
-export default AddNoteDiaglog;
+export default EditNoteDialog;
