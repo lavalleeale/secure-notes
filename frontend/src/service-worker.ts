@@ -9,7 +9,7 @@
 // service worker, and the Workbox build step will be skipped.
 
 import { clientsClaim } from "workbox-core";
-import { precacheAndRoute, createHandlerBoundToURL } from "workbox-precaching";
+import { createHandlerBoundToURL, precacheAndRoute } from "workbox-precaching";
 import { registerRoute } from "workbox-routing";
 import { NetworkFirst } from "workbox-strategies";
 
@@ -60,10 +60,6 @@ registerRoute(
     url.origin === self.location.origin &&
     (url.pathname.endsWith(".ico") || url.pathname.endsWith(".json")),
   // Customize this strategy as needed, e.g., by changing to CacheFirst.
-  new NetworkFirst()
-);
-registerRoute(
-  ({ url }) => url.host === "securenotes-api.alextesting.ninja",
   new NetworkFirst()
 );
 

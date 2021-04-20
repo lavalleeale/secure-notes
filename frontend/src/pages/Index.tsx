@@ -17,6 +17,7 @@ import { v4 as uuidv4 } from "uuid";
 import EditNoteDialog from "../components/EditNoteDiaglog";
 import Cookies from "js-cookie";
 import { API_BASE_URL } from "../lib/constants";
+import { useIndexedDB } from "react-indexed-db";
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
@@ -32,6 +33,8 @@ const Index = () => {
   const [editNoteOpen, setEditNoteOpen] = React.useState(false);
 
   const { key } = React.useContext(KeyContext);
+
+  const db = useIndexedDB("notes");
 
   function addNote(title: string, body: string) {
     if (key) {
@@ -96,32 +99,43 @@ const Index = () => {
   React.useEffect(() => {
     fetch(`${API_BASE_URL}/notes/getAllNotes`, {
       credentials: "include",
-    }).then((response) =>
-      response.json().then((data: { iv: string; data: string; id: any }[]) => {
-        if (key) {
-          console.log(data);
-          Promise.all(
-            data.map((note: { iv: string; data: string; id: any }) => {
-              console.log(decode(note.iv));
-              return window.crypto.subtle
-                .decrypt(
-                  { name: "AES-GCM", iv: decode(note.iv) },
-                  key,
-                  decode(note.data)
-                )
-                .then((decryptedNote) => ({
-                  ...JSON.parse(dec.decode(decryptedNote)),
-                  id: note.id,
-                }));
-            })
-          ).then((newNotes) => {
-            if (JSON.stringify(newNotes) !== JSON.stringify(notes))
-              setNotes(newNotes);
-          });
+    })
+      .catch((response) => undefined)
+      .then((response) => {
+        let data;
+        if (response) {
+          data = response.json();
+        } else {
+          data = db.getAll();
         }
-      })
-    );
-  }, [notes, key]);
+        data.then((data: { iv: string; data: string; id: any }[]) => {
+          if (key) {
+            Promise.all(
+              data.map((note: { iv: string; data: string; id: string }) => {
+                db.getAll().then((all) => {
+                  if (all.filter((data) => data.id === note.id).length === 0) {
+                    db.add(note);
+                  }
+                });
+                return window.crypto.subtle
+                  .decrypt(
+                    { name: "AES-GCM", iv: decode(note.iv) },
+                    key,
+                    decode(note.data)
+                  )
+                  .then((decryptedNote) => ({
+                    ...JSON.parse(dec.decode(decryptedNote)),
+                    id: note.id,
+                  }));
+              })
+            ).then((newNotes) => {
+              if (JSON.stringify(newNotes) !== JSON.stringify(notes))
+                setNotes(newNotes);
+            });
+          }
+        });
+      });
+  }, [notes, key, db]);
 
   return (
     <Paper className="paper">
