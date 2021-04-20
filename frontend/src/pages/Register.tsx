@@ -1,10 +1,12 @@
 import {
   Avatar,
   Button,
+  InputAdornment,
   Paper,
   TextField,
   Tooltip,
   Typography,
+  IconButton,
 } from "@material-ui/core";
 import zxcvbn, { ZXCVBNResult } from "zxcvbn";
 import React from "react";
@@ -12,6 +14,7 @@ import { UserContext } from "../context/UserContext";
 import { Link, Redirect } from "react-router-dom";
 import { API_BASE_URL } from "../lib/constants";
 import Cookies from "js-cookie";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 
 const Register = () => {
   const [username, setUsername] = React.useState("");
@@ -21,6 +24,7 @@ const Register = () => {
     zxcvbn("")
   );
   const [finished, setFinished] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const { setUser } = React.useContext(UserContext);
 
@@ -119,6 +123,19 @@ const Register = () => {
               required
               style={{ marginTop: 10, width: "50%" }}
               value={password}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      aria-label="toggle password visibility"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? <Visibility /> : <VisibilityOff />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
           </Tooltip>
         </div>

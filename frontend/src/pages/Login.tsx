@@ -1,20 +1,24 @@
 import {
   Avatar,
   Button,
+  IconButton,
+  InputAdornment,
   Paper,
   TextField,
   Typography,
 } from "@material-ui/core";
-import React from "react";
-import { UserContext } from "../context/UserContext";
-import { Link, Redirect } from "react-router-dom";
-import { API_BASE_URL } from "../lib/constants";
+import { Visibility, VisibilityOff } from "@material-ui/icons";
 import Cookies from "js-cookie";
+import React from "react";
+import { Link, Redirect } from "react-router-dom";
+import { UserContext } from "../context/UserContext";
+import { API_BASE_URL } from "../lib/constants";
 
 const Login = () => {
   const [username, setUsername] = React.useState("");
   const [password, setPassword] = React.useState("");
   const [finished, setFinished] = React.useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   const { setUser } = React.useContext(UserContext);
 
@@ -86,11 +90,24 @@ const Login = () => {
         <div>
           <TextField
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             onChange={(e) => setPassword(e.target.value)}
             required
             style={{ marginTop: 10, width: "50%" }}
             value={password}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    size="small"
+                    aria-label="toggle password visibility"
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
+                    {showPassword ? <Visibility /> : <VisibilityOff />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
         </div>
         <Button

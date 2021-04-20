@@ -1,22 +1,22 @@
-import * as React from "react";
 import { createMuiTheme, CssBaseline, ThemeProvider } from "@material-ui/core";
-import useDarkMode from "use-dark-mode";
+import * as React from "react";
+import { initDB, useIndexedDB } from "react-indexed-db";
 import {
   HashRouter as Router,
   Redirect,
   Route,
   Switch,
 } from "react-router-dom";
-import Index from "./pages/Index";
+import useDarkMode from "use-dark-mode";
 import Header from "./components/Header";
-import { DBConfig } from "./lib/DBConfig";
-import { initDB, useIndexedDB } from "react-indexed-db";
-import Note from "./pages/Note";
-import GenerateKey from "./pages/GenerateKey";
 import { KeyContext } from "./context/KeyContext";
 import { UserContext } from "./context/UserContext";
-import Register from "./pages/Register";
+import { DBConfig } from "./lib/DBConfig";
+import GenerateKey from "./pages/GenerateKey";
+import Index from "./pages/Index";
 import Login from "./pages/Login";
+import Note from "./pages/Note";
+import Register from "./pages/Register";
 
 initDB(DBConfig);
 
