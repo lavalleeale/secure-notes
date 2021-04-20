@@ -1,0 +1,4 @@
+{
+    "python.pythonPath": "/Users/alex/Documents/Programming/secure-notes/flaskvenv/bin/python",
+    "python.formatting.provider": "black"
+}

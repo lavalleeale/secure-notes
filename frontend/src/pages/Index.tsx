@@ -7,28 +7,30 @@ import {
   ListItemText,
   Paper,
 } from "@material-ui/core";
-import { useIndexedDB } from "react-indexed-db";
+import { encode, decode } from "base64-arraybuffer";
 import React from "react";
 import AddNoteDialog from "../components/AddNoteDialog";
 import { Link } from "react-router-dom";
 import { KeyContext } from "../context/KeyContext";
 import { Create, Delete } from "@material-ui/icons";
+import { v4 as uuidv4 } from "uuid";
 import EditNoteDialog from "../components/EditNoteDiaglog";
+import Cookies from "js-cookie";
+import { API_BASE_URL } from "../lib/constants";
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();
 
 const Index = () => {
   const [notes, setNotes] = React.useState<
-    { title: string; body: string; id: number }[]
+    { title: string; body: string; id: string }[]
   >([]);
   const [editingBody, setEditingBody] = React.useState("");
   const [editingTitle, setEditingTitle] = React.useState("");
-  const [editingID, setEditingID] = React.useState(0);
+  const [editingID, setEditingID] = React.useState("");
   const [addNoteOpen, setAddNoteOpen] = React.useState(false);
   const [editNoteOpen, setEditNoteOpen] = React.useState(false);
 
-  const db = useIndexedDB("notes");
   const { key } = React.useContext(KeyContext);
 
   function addNote(title: string, body: string) {
@@ -41,14 +43,30 @@ const Index = () => {
           enc.encode(JSON.stringify({ title, body }))
         )
         .then((note) => {
-          db.add({ note, iv }).then((id: number) =>
-            setNotes([...notes, { title, body, id }])
+          const id = uuidv4();
+          const encodedNote = {
+            note: encode(note),
+            iv: encode(iv.buffer),
+            id,
+          };
+          fetch(`${API_BASE_URL}/notes/addNote`, {
+            method: "POST",
+            credentials: "include",
+            headers: {
+              "content-type": "application/json",
+              "X-CSRF-TOKEN": Cookies.get("csrf_access_token") as string,
+            },
+            body: JSON.stringify(encodedNote),
+          }).then((response) =>
+            response.text().then(() => {
+              setNotes([...notes, { title, body, id }]);
+            })
           );
         });
     }
   }
 
-  function editNote(title: string, body: string, id: number) {
+  function editNote(title: string, body: string, id: string) {
     if (key) {
       const iv = window.crypto.getRandomValues(new Uint8Array(12));
       window.crypto.subtle
@@ -58,34 +76,52 @@ const Index = () => {
           enc.encode(JSON.stringify({ title, body }))
         )
         .then((note) => {
-          db.update({ note, iv, id }).then(() =>
-            setNotes([...notes, { title, body, id }])
-          );
+          fetch(`${API_BASE_URL}/notes/updateNote`, {
+            method: "PUT",
+            credentials: "include",
+            headers: {
+              "content-type": "application/json",
+              "X-CSRF-TOKEN": Cookies.get("csrf_access_token") as string,
+            },
+            body: JSON.stringify({
+              data: encode(note),
+              iv: encode(iv),
+              id: id,
+            }),
+          }).then(() => setNotes([...notes, { title, body, id }]));
         });
     }
   }
 
   React.useEffect(() => {
-    db.getAll<{ note: ArrayBuffer; iv: Uint8Array; id: number }>().then(
-      (data) => {
+    fetch(`${API_BASE_URL}/notes/getAllNotes`, {
+      credentials: "include",
+    }).then((response) =>
+      response.json().then((data: { iv: string; data: string; id: any }[]) => {
         if (key) {
+          console.log(data);
           Promise.all(
-            data.map((note) =>
-              window.crypto.subtle
-                .decrypt({ name: "AES-GCM", iv: note.iv }, key, note.note)
+            data.map((note: { iv: string; data: string; id: any }) => {
+              console.log(decode(note.iv));
+              return window.crypto.subtle
+                .decrypt(
+                  { name: "AES-GCM", iv: decode(note.iv) },
+                  key,
+                  decode(note.data)
+                )
                 .then((decryptedNote) => ({
                   ...JSON.parse(dec.decode(decryptedNote)),
                   id: note.id,
-                }))
-            )
+                }));
+            })
           ).then((newNotes) => {
             if (JSON.stringify(newNotes) !== JSON.stringify(notes))
               setNotes(newNotes);
           });
         }
-      }
+      })
     );
-  }, [db, notes, key]);
+  }, [notes, key]);
 
   return (
     <Paper className="paper">
@@ -129,7 +165,15 @@ const Index = () => {
               <IconButton
                 edge="end"
                 onClick={() => {
-                  db.deleteRecord(note.id);
+                  fetch(`${API_BASE_URL}/notes/deleteNote/${note.id}`, {
+                    method: "DELETE",
+                    credentials: "include",
+                    headers: {
+                      "X-CSRF-TOKEN": Cookies.get(
+                        "csrf_access_token"
+                      ) as string,
+                    },
+                  });
                   setNotes(notes.filter((data) => note.id !== data.id));
                 }}
               >

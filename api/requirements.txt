@@ -1,0 +1,9 @@
+Flask
+Flask-Migrate
+flask-sqlalchemy
+flask_cors
+psycopg2
+python-dotenv
+flask_jwt_extended
+py-bcrypt
+gunicorn

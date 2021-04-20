@@ -14,6 +14,9 @@ import { initDB, useIndexedDB } from "react-indexed-db";
 import Note from "./pages/Note";
 import GenerateKey from "./pages/GenerateKey";
 import { KeyContext } from "./context/KeyContext";
+import { UserContext } from "./context/UserContext";
+import Register from "./pages/Register";
+import Login from "./pages/Login";
 
 initDB(DBConfig);
 
@@ -40,6 +43,7 @@ function App() {
   const darkMode = useDarkMode();
   const db = useIndexedDB("keys");
   const [key, setKey] = React.useState<CryptoKey>();
+  const [user, setUser] = React.useState("");
   const [needKey, setNeedKey] = React.useState(false);
 
   React.useEffect(() => {
@@ -53,26 +57,35 @@ function App() {
   }, [db, key]);
 
   return (
-    <KeyContext.Provider value={{ key, setKey, needKey, setNeedKey }}>
-      <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
-        <CssBaseline />
-        <Router>
-          <Header />
-          {needKey && <Redirect to="/generate" />}
-          <Switch>
-            <Route path="/note/:id">
-              <Note />
-            </Route>
-            <Route path="/generate">
-              <GenerateKey />
-            </Route>
-            <Route path="/">
-              <Index />
-            </Route>
-          </Switch>
-        </Router>
-      </ThemeProvider>
-    </KeyContext.Provider>
+    <UserContext.Provider value={{ user, setUser }}>
+      <KeyContext.Provider value={{ key, setKey, needKey, setNeedKey }}>
+        <ThemeProvider theme={darkMode ? darkTheme : lightTheme}>
+          <CssBaseline />
+          <Router>
+            {user && !key && <Redirect to="/generate" />}
+            {!user && <Redirect to="/login" />}
+            <Header />
+            <Switch>
+              <Route path="/note/:id">
+                <Note />
+              </Route>
+              <Route path="/generate">
+                <GenerateKey />
+              </Route>
+              <Route path="/register">
+                <Register />
+              </Route>
+              <Route path="/login">
+                <Login />
+              </Route>
+              <Route path="/">
+                <Index />
+              </Route>
+            </Switch>
+          </Router>
+        </ThemeProvider>
+      </KeyContext.Provider>
+    </UserContext.Provider>
   );
 }
 
