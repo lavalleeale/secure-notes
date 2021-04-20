@@ -9,6 +9,7 @@ import React from "react";
 import { UserContext } from "../context/UserContext";
 import { Link, Redirect } from "react-router-dom";
 import { API_BASE_URL } from "../lib/constants";
+import Cookies from "js-cookie";
 
 const Login = () => {
   const [username, setUsername] = React.useState("");
@@ -26,7 +27,18 @@ const Login = () => {
         credentials: "include",
       }).then((response) =>
         response.json().then((json) => {
+          Cookies.set("name", json.name, {
+            expires: 365 * 10,
+          });
           setUser(json.name);
+          if (window.PasswordCredential) {
+            const creds = new window.PasswordCredential({
+              id: username,
+              password: password,
+              name: json.name,
+            });
+            window.navigator.credentials.store(creds);
+          }
           setFinished(true);
         })
       );
@@ -35,7 +47,10 @@ const Login = () => {
   );
 
   React.useEffect(() => {
-    if (window.PasswordCredential) {
+    if (Cookies.get("name")) {
+      setUser(Cookies.get("name") as string);
+      setFinished(true);
+    } else if (window.PasswordCredential) {
       window.navigator.credentials
         .get({
           password: true,
@@ -46,7 +61,7 @@ const Login = () => {
           }
         });
     }
-  }, [login]);
+  }, [login, setUser]);
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();

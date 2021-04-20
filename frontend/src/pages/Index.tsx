@@ -57,7 +57,11 @@ const Index = () => {
               "X-CSRF-TOKEN": Cookies.get("csrf_access_token") as string,
             },
             body: JSON.stringify(encodedNote),
-          }).then((response) => response.text().then(console.log));
+          }).then((response) =>
+            response.text().then(() => {
+              setNotes([...notes, { title, body, id }]);
+            })
+          );
         });
     }
   }

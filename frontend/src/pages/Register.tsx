@@ -11,6 +11,7 @@ import React from "react";
 import { UserContext } from "../context/UserContext";
 import { Link, Redirect } from "react-router-dom";
 import { API_BASE_URL } from "../lib/constants";
+import Cookies from "js-cookie";
 
 const Register = () => {
   const [username, setUsername] = React.useState("");
@@ -25,14 +26,6 @@ const Register = () => {
 
   function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (window.PasswordCredential) {
-      const creds = new window.PasswordCredential({
-        id: username,
-        password: password,
-        name: name,
-      });
-      window.navigator.credentials.store(creds);
-    }
     fetch(`${API_BASE_URL}/auth/register`, {
       method: "POST",
       headers: { "content-type": "application/json" },
@@ -41,6 +34,17 @@ const Register = () => {
     }).then((response) =>
       response.json().then((json) => {
         setUser(json.name);
+        Cookies.set("name", json.name, {
+          expires: 365 * 10,
+        });
+        if (window.PasswordCredential) {
+          const creds = new window.PasswordCredential({
+            id: username,
+            password: password,
+            name: name,
+          });
+          window.navigator.credentials.store(creds);
+        }
         setFinished(true);
       })
     );

@@ -19,7 +19,7 @@ CORS(
     origins=[
         "http://localhost:3000"
         if app.config["ENV"] != "production"
-        else "https://secure-notes.alextesting.ninja"
+        else "https://securenotes.alextesting.ninja"
     ],
     supports_credentials=True,
 )
